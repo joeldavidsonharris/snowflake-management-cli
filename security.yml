@@ -1,0 +1,59 @@
+
+developer:
+  inherits:
+    - viewer
+
+  db_grants:
+    write,manage:
+      dev:
+        - land
+        - persist
+        - report
+  
+  warehouses:
+    - dev_elt_whs
+
+admin:
+  inherits:
+    - developer
+  
+  db_grants:
+    write,manage:
+      prd:
+        - land
+        - persist
+        - report
+  
+  warehouses:
+    - prd_elt_whs
+
+salesforce_viewer:
+  db_grants:
+    read:
+      all_envs:
+        - report.salesforce
+  
+  warehouses:
+    - dev_analyst_whs
+    - prd_analyst_whs
+
+viewer:
+  db_grants:
+    read:
+      all_envs:
+        - land
+        - persist
+        - report
+  
+  warehouses:
+    - dev_analyst_whs
+    - prd_analyst_whs
+
+analyst:
+  db_grants:
+    read:
+      prd:
+        - report
+
+  warehouses:
+    - prd_analyst_whs
