@@ -3,7 +3,7 @@ snowflake:
     database_prefix: dwh
 
   parameters:
-    timezone: Pacific/Auckland
+    timezone: "'Pacific/Auckland'"
     timestamp_type_mapping: timestamp_ltz
     require_storage_integration_for_stage_creation: true
     quoted_identifiers_ignore_case: true
@@ -11,26 +11,26 @@ snowflake:
 
   warehouses:
     - name: dev_analyst_whs
-      size: xsmall
+      warehouse_size: xsmall
       auto_suspend: 60
 
     - name: dev_elt_whs
-      size: xsmall
+      warehouse_size: xsmall
       auto_suspend: 60
 
     - name: prd_analyst_whs
-      size: small
+      warehouse_size: small
       auto_suspend: 60
 
     - name: prd_elt_whs
-      size: small
+      warehouse_size: small
       auto_suspend: 60
 
   envs:
     - name: dev
-      data_retention_days: 1
+      data_retention_time_in_days: 1
     - name: prd
-      data_retention_days: 14
+      data_retention_time_in_days: 14
   
   layers:
     - name: land
@@ -41,6 +41,7 @@ snowflake:
 
   behaviour_packs:
     disable_inactive_users:
+      schema: audit.security
       inactive_days: 30
 
     log_account_usage:
