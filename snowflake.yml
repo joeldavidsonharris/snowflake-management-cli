@@ -6,7 +6,6 @@ snowflake:
     timezone: "'Pacific/Auckland'"
     timestamp_type_mapping: timestamp_ltz
     require_storage_integration_for_stage_creation: true
-    quoted_identifiers_ignore_case: true
     min_data_retention_time_in_days: 1
 
   warehouses:
@@ -46,8 +45,12 @@ snowflake:
 
     log_account_usage:
       schema: audit.account_usage
+      reader: false
   
   frameworks:
+    logging:
+      schema: audit.logging
+
     security:
       schema: audit.security
       config_file: security.yml

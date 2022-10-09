@@ -24,27 +24,62 @@ def main(args):
             create_warehouses(snowflake['warehouses'])
         if args.object_type == 'database' or args.object_type == 'all':
             create_databases(snowflake['envs'], snowflake['layers'], snowflake.get('settings', {}).get('database_prefix', ''))
+        if args.object_type == 'frameworks' or args.object_type == 'all':
+            create_frameworks(snowflake['frameworks'], snowflake.get('settings', {}).get('database_prefix', ''))
         if args.object_type == 'behaviour_packs' or args.object_type == 'all':
-            create_behaviour_packs(snowflake['behaviour_packs'], snowflake.get('settings', {}).get('database_prefix', ''))
+            create_behaviour_packs(snowflake['behaviour_packs'], snowflake['frameworks']['logging']['schema'], snowflake.get('settings', {}).get('database_prefix', ''))
 
 
-def create_behaviour_packs(behaviour_packs, database_prefix=''):
+def create_frameworks(frameworks, database_prefix=''):
+    if database_prefix != '':
+        database_prefix += '_'
+
+    for name, attributes in frameworks.items():
+        if name == 'logging':
+            schema = attributes['schema']
+            database = schema.split('.')[0]
+            rendered_sql = Template(load_file('sql/frameworks/logging.sql')).render(
+                schema=f'{database_prefix}{schema}',
+                database=f'{database_prefix}{database}'
+            )
+            run_queries(rendered_sql, f'Create framework: {name}')
+        if name == 'security':
+            schema = attributes['schema']
+            database = schema.split('.')[0]
+            config_file = attributes['config_file']
+            role_prefix = attributes['role_prefix']
+            rendered_sql = Template(load_file('sql/frameworks/security.sql')).render(
+                schema=f'{database_prefix}{schema}',
+                database=f'{database_prefix}{database}'
+            )
+            run_queries(rendered_sql, f'Create framework: {name}')
+
+
+def create_behaviour_packs(behaviour_packs, logging_schema, database_prefix=''):
     if database_prefix != '':
         database_prefix += '_'
 
     for name, attributes in behaviour_packs.items():
         if name == 'disable_inactive_users':
             schema = attributes['schema']
+            database = schema.split('.')[0]
             inactive_days = attributes['inactive_days']
             rendered_sql = Template(load_file('sql/behaviour_packs/disable_inactive_users.sql')).render(
                 schema=f'{database_prefix}{schema}',
+                database=f'{database_prefix}{database}',
+                logging_schema=f'{database_prefix}{logging_schema}',
                 inactive_days=inactive_days
             )
             run_queries(rendered_sql, f'Create behaviour pack: {name}')
         if name == 'log_account_usage':
             schema = attributes['schema']
+            database = schema.split('.')[0]
+            reader = str(attributes['reader']).lower()
             rendered_sql = Template(load_file('sql/behaviour_packs/log_account_usage.sql')).render(
-                schema=f'{database_prefix}{schema}'
+                schema=f'{database_prefix}{schema}',
+                database=f'{database_prefix}{database}',
+                logging_schema=f'{database_prefix}{logging_schema}',
+                reader=reader
             )
             run_queries(rendered_sql, f'Create behaviour pack: {name}')
 
@@ -82,7 +117,7 @@ def create_warehouses(warehouses):
         run_queries(f'''
             use role sysadmin;
             create warehouse if not exists {name}
-            {attributes}
+            {attributes};
         ''', f'Create warehouse: {name}')
 
 
@@ -97,12 +132,14 @@ def set_account_parameters(parameters):
 
 def run_query(query_text, message):
     result = conn.cursor().execute(query_text.replace('\t', ''))
+    conn.cursor().execute('use role sysadmin')
     conn.cursor().execute('insert into management.cli.action_log(action) values (%s)', (message))
     return result
 
 
 def run_queries(query_text, message):
     result = conn.execute_string(query_text.replace('\t', ''))
+    conn.cursor().execute('use role sysadmin')
     conn.cursor().execute('insert into management.cli.action_log(action) values (%s)', (message))
     return result
 
@@ -156,10 +193,14 @@ def get_snowflake_config_schema():
                     'inactive_days': int
                 },
                 Optional('log_account_usage'): {
-                    'schema': str
+                    'schema': str,
+                    'reader': bool
                 },
             },
             'frameworks': {
+                'logging': {
+                    'schema': str
+                },
                 Optional('security'): {
                     'schema': str,
                     'config_file': And(str, lambda x: x.endswith('.yml')),

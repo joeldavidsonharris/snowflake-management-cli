@@ -2,6 +2,9 @@ use role accountadmin;
 
 drop database if exists snowflake_sample_data;
 
+grant execute task on account to role sysadmin;
+grant execute task on account to role securityadmin;
+
 use role sysadmin;
 
 create warehouse if not exists admin_whs
