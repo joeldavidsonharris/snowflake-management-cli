@@ -55,3 +55,10 @@ snowflake:
       schema: audit.security
       config_file: security.yml
       role_prefix: dwh
+  
+  integrations:
+    storage:
+      - name: storage_int_aws
+        storage_provider: s3
+        storage_locations:
+          - snowflake-management-cli-test-bucket

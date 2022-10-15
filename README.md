@@ -70,6 +70,9 @@ python cli.py apply frameworks
 
 # Apply behaviour pack configuration
 python cli.py apply behaviour_packs
+
+# Apply integration configuration
+python cli.py apply integrations
 ```
 
 ### Auditing CLI actions
