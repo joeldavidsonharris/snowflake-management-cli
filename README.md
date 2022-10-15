@@ -36,6 +36,17 @@ snowflake:
 > **Note:** The user must have the `accountadmin` role \
 > **Note:** The warehouse `admin_whs` will be created automatically
 
+In order to manage storage integrations using S3 buckets, you will also need to add AWS credentials to `credentials.yml`:
+```
+aws:
+  account: <AWS account identifier>
+  access_key: <AWS IAM user access key>
+  secret_key: <AWS IAM user secret key>
+```
+> **Note:** Useful guide on creating an AWS IAM user for programmatic access [here](https://www.simplified.guide/aws/iam/create-programmatic-access-user) \
+> **Note:** The user must have `IAMFullAccess` and `AmazonS3FullAccess` privileges
+
+
 ## Usage
 
 CLI behaviour is driven by the configuration YAML file `snowflake.yml`.
